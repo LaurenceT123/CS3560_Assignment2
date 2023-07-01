@@ -62,6 +62,8 @@ public class FollowUserCommand implements Command
 						System.out.println("--------" + mainTarget.getID());
 						System.out.println("Following: " + printArrayList(mainTarget.getFollowings()));
 						
+						mainTarget.setLastUpdateTime(System.currentTimeMillis());
+						
 						model.addElement(userId.getText());
 						mainGUI.updateJList(); //update main target's live feed
 						

@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.*;
 
@@ -226,7 +227,7 @@ public class GUI_User implements Observer
 		g.fill = GridBagConstraints.HORIZONTAL;
 		g.insets = new Insets(10,10,0,10);
 	
-		lastUpdateTime.setText("Live Feed Update Time:" + mainTarget.getLastUpdateTime());
+		lastUpdateTime.setText("Live Feed Update Time:" + (new Date(mainTarget.getLastUpdateTime())));
 		lastUpdateTime.setEditable(false);
 		t.ipady = 20;
 		t.ipadx = 100;
@@ -262,7 +263,7 @@ public class GUI_User implements Observer
 		jButtonPost(postTweet);
 		
 		creationTime = new JTextField();
-		creationTime.setText("User Creation Time:" + mainTarget.getCreationTimeString());
+		creationTime.setText("User Creation Time:" + (new Date(mainTarget.getCreationTime())));
 		creationTime.setEditable(false);
 		t.ipady = 20;
 		t.ipadx = 20;
@@ -282,7 +283,7 @@ public class GUI_User implements Observer
 	
 	public void updateJList() 
 	{
-		lastUpdateTime.setText("Live Feed Update Time: " + mainTarget.getLastUpdateTime());
+		lastUpdateTime.setText("Live Feed Update Time: " + (new Date(mainTarget.getLastUpdateTime())));
 		
 		model1.clear();
 		String value = "";
@@ -346,7 +347,7 @@ public class GUI_User implements Observer
 					totalPositiveMessages = getTotalPositiveMessages() + 1;
 				}
 				
-				mainTarget.setLastUpdateTime(new java.util.Date());
+				mainTarget.setLastUpdateTime(System.currentTimeMillis());
 										
 				tweetMessage.setText("");
 				

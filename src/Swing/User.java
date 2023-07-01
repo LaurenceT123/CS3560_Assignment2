@@ -11,13 +11,13 @@ public class User extends Subject implements Users
 	private ArrayList<String> messages = new ArrayList<String>(); //list of user's messages
 	
 	//Added variables for mini twitter 2.0
-	private Date creationTime; //system timestamp that object was created
-	private Date lastUpdateTime; //last updated timestamp of object, when posting
+	private long creationTime; //system timestamp that object was created
+	private long lastUpdateTime; //last updated timestamp of object, when posting
 	
 	public User(String userInput)
 	{
 		this.ID = userInput;
-		setCreationTime(new java.util.Date());
+		setCreationTime(System.currentTimeMillis());
 		setLastUpdateTime(creationTime);
 	}
 	
@@ -48,7 +48,7 @@ public class User extends Subject implements Users
 	public void addMessage(String userInput)
 	{
 		messages.add(userInput);
-		setLastUpdateTime(new java.util.Date());
+		setLastUpdateTime(System.currentTimeMillis());
 	}
 
 	//Getter for User ID --> Will not allow a change so no setter
@@ -89,23 +89,23 @@ public class User extends Subject implements Users
 		return temp;
 	}
 
-	public Date getCreationTime() {
+	public long getCreationTime() {
 		return creationTime;
 	}
-	public Date getCreationTimeString()
+	public String getCreationTimeString()
 	{
-		return creationTime;
+		return Long.toString(creationTime);
 	}
 
-	public void setCreationTime(Date date) {
+	public void setCreationTime(long date) {
 		this.creationTime = date;
 	}
 
-	public Date getLastUpdateTime() {
+	public long getLastUpdateTime() {
 			return lastUpdateTime;
 	}
 
-	public void setLastUpdateTime(Date creationTime2) {
+	public void setLastUpdateTime(long creationTime2) {
 		this.lastUpdateTime = creationTime2;
 	}
 

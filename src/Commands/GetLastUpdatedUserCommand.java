@@ -34,7 +34,7 @@ public class GetLastUpdatedUserCommand implements Command {
 					User lastUser = listOfUsers.get(0);
 					for(int i = 0; i < listOfUsers.size(); i++)
 					{
-						if(listOfUsers.get(i).getLastUpdateTime().compareTo(lastUser.getLastUpdateTime()) > 0)
+						if(listOfUsers.get(i).getLastUpdateTime() > lastUser.getLastUpdateTime())
 						{
 							lastUser = listOfUsers.get(i);
 						}
