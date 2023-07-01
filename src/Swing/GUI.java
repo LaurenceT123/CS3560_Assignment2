@@ -1,15 +1,26 @@
 package Swing;
 
 import javax.swing.*;
-import javax.swing.text.Position;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreePath;
 
-import java.awt.event.*;
+//Commands import
+import Commands.AddGroupCommand;
+import Commands.AddUserCommand;
+import Commands.Command;
+import Commands.GetLastUpdatedUserCommand;
+import Commands.OpenUserViewCommand;
+import Commands.ShowGroupTotalCommand;
+import Commands.ShowTotalMessagesCommand;
+import Commands.ShowTotalPositiveMessagesCommand;
+import Commands.ShowUserTotalCommand;
+import Commands.VerifyAllId;
+
 import java.util.ArrayList;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 
 
 /*Follows Singleton Pattern
@@ -34,6 +45,9 @@ public class GUI
 	private JTextField userId;
 	private JTextField groupId;
 	private JTextArea reportArea;
+	private JTextArea reportArea2; //this report area is ONLY for the following buttons:
+								   // userGroupIDVerify
+								   // lastUpdatedUser
 	
 	//buttons
 	private JButton addUser;
@@ -43,6 +57,9 @@ public class GUI
 	private JButton showGroupTotal;
 	private JButton showMessageTotal;
 	private JButton showPositivePercentage;
+	
+	private JButton userGroupIDVerify;
+	private JButton lastUpdatedUser;
 	
 	//tree
 	private JTree myTree;
@@ -58,6 +75,8 @@ public class GUI
 	//Private constructor to force use of getInstance()
 	private GUI()
 	{
+		reportArea = new JTextArea();
+		reportArea2 = new JTextArea();
 		allGUIOpen = new ArrayList<GUI_User>();
 		this.frame = new JFrame();
 		User_Group Root = new User_Group("Root");
@@ -82,34 +101,37 @@ public class GUI
 	{
 		//Sets up main Container
 		Container mainContainer = frame.getContentPane();
-		mainContainer.setLayout(new GridLayout(2,2));
+		mainContainer.setLayout(new GridLayout(3,2));
 		mainContainer.setBackground(Color.WHITE);
 		
 		
 		//Tree
 		createTree(mainContainer);
 		
-		
-		//--------------Create Right Side------------------
-		
-		JFrame testframe = new JFrame();
-		Container rightSide = testframe.getContentPane();
-		rightSide.setLayout(new GridLayout(3,1));
+		//--------------Major Buttons------------------
 		
 		//Create top right
 		createTopRight(mainContainer);
 		
-		reportArea = new JTextArea();
-		reportArea.setText("Report Area:");
+		reportArea.setText("Report Area for the following buttons:------------------------>");
+		reportArea.setEditable(false);
 		mainContainer.add(reportArea);
 		
 		//Create bottom right
 		createBottomRight(mainContainer);
+				
+		
+		reportArea2.setText("Report Area for the following buttons:----------------------->");
+		reportArea2.setEditable(false);
+		mainContainer.add(reportArea2);
+		
+		createBottomLeft (mainContainer);
 		
 		//--------------------------------------------------
 		
+		
 		frame.setSize(width,height);
-		frame.setTitle("Admin Control Panel - Mini Twitter");
+		frame.setTitle("Admin Control Panel - Mini Twitter 2.0");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 	}
@@ -183,6 +205,22 @@ public class GUI
 		main.add(bottomRight);
 			
 	}
+	
+	private void createBottomLeft(Container main)
+	{
+		JPanel bottomLeft = new JPanel(new GridLayout(1,2));
+		
+		userGroupIDVerify = new JButton ("User and Group ID Verify");
+		bottomLeft.add(userGroupIDVerify);
+		jbuttonUserGroupIDVerify(userGroupIDVerify);
+		
+		lastUpdatedUser = new JButton("Get Last Updated User");
+		bottomLeft.add(lastUpdatedUser);
+		jbuttonGetLastUpdatedUser(lastUpdatedUser);
+		
+		main.add(bottomLeft);
+		
+	}
 	private void createTree(Container main)
 	{
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
@@ -198,185 +236,68 @@ public class GUI
 	
 	//+++++++++++++++++++++++++++++++++Button Action Methods+++++++++++++++++++++++++++++++++
 	
-	//Add User Button 
+	//Add User Button ---------------> Check package named Commands
 	private void jButtonAddUserActionPerformed(JButton but)
 	{
-		ActionListener buttonListener = new ActionListener()
-				{
-					public void actionPerformed(ActionEvent ae)
-					{
-						String reportingInfo = "Reporting Info:\n1. Clicked Add User!...\n";
-						
-						DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) myTree.getSelectionPath().getLastPathComponent();
-						DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(userId.getText());
-						User newUser = new User(userId.getText()); //create user
-						
-						listOfUsers.add(newUser); //add to ArrayList
-						
-						if(groupArrayListContains(listOfGroups,selectedNode) != -1) //prevents adding a user when a user is selected
-						{
-							reportingInfo += "2. Adding user to group...\n";
-							int getIndex = groupArrayListContains(listOfGroups,selectedNode);
-							listOfGroups.get(getIndex).addUser(newUser);
-							
-							userId.setText("");
-							
-							selectedNode.add(newNode);
-								
-							DefaultTreeModel refreshTree = (DefaultTreeModel) myTree.getModel();
-							refreshTree.reload();
-						}
-						
-						reportArea.setText(reportingInfo);
-					}
-				};
-				
-				but.addActionListener(buttonListener);
+		Command command = new AddUserCommand(listOfUsers, listOfGroups, but, myTree, userId,reportArea);
+		command.execute();
 	}
 	
+	//Add Group Button -------------> Check package named Commands
 	private void jButtonAddGroupActionPerformed(JButton but)
 	{
-		ActionListener buttonListener = new ActionListener()
-				{
-					public void actionPerformed(ActionEvent ae)
-					{
-						String reportingInfo = "Reporting Info:\n1. Clicked Add Group!...\nNOTE: adding a group will come with a blank file\nThis is not a user, it's sole purpose is to change the icon of file in tree";
-					
-						DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) myTree.getSelectionPath().getLastPathComponent();
-						DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(groupId.getText());
-						User_Group newUserGroup = new User_Group(groupId.getText()); //create user
-						
-						if(groupArrayListContains(listOfGroups,selectedNode) != -1) //prevents adding a group when a user is selected
-						{
-							listOfGroups.add(newUserGroup); //add to ArrayList
-
-							groupId.setText("");
-							selectedNode.add(newNode);
-							
-							DefaultMutableTreeNode emptyNode = new DefaultMutableTreeNode("");
-							newNode.add(emptyNode); //to help get the folder icon
-													//when counting for user total, it will ignore this
-							
-						
-							listOfGroups.get(groupArrayListContains(listOfGroups,selectedNode)).addGroup(newUserGroup);
-							DefaultTreeModel refreshTree = (DefaultTreeModel) myTree.getModel();
-						
-							refreshTree.reload();
-						}
-						
-						reportArea.setText(reportingInfo);
-					}
-				};
-				
-				but.addActionListener(buttonListener);
+		Command command = new AddGroupCommand(listOfGroups, but, myTree, groupId, reportArea);
+		command.execute();
 	}
 	
+	//Opens User view --------------> Check package named Commands
 	private void jButtonOpenUserView(JButton but)
 	{
-		ActionListener buttonListener = new ActionListener()
-				{
-					public void actionPerformed(ActionEvent ae)
-					{
-						DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) myTree.getSelectionPath().getLastPathComponent();
-						User selectedUser = listOfUsers.get(userArrayListContains(listOfUsers,selectedNode));
-
-						newWindow = new GUI_User(selectedUser, listOfUsers, allGUIOpen);
-						allGUIOpen.add(newWindow);
-					}
-				};
-				
-				but.addActionListener(buttonListener);
+		Command command = new OpenUserViewCommand(listOfUsers, but, myTree, newWindow, allGUIOpen);
+		command.execute();
 	}
 	
+	//Show total users made in reportArea -----------> Check package named Commands
 	private void jButtonGetTotalUsersPerformed(JButton but)
 	{
-		ActionListener buttonListener = new ActionListener()
-				{
-					public void actionPerformed(ActionEvent ae)
-					{
-						UserTotal usersT = new UserTotal(listOfUsers);
-						usersT.accept(visit, reportArea);
-					}
-				};
-				
-				but.addActionListener(buttonListener);
+		Command command = new ShowUserTotalCommand(listOfUsers,but, reportArea,visit);
+		command.execute();
 	}
 	
+	//Show total groups made in reportArea -----------> Check package named Commands
 	private void jButtonGetTotalGroupPerformed(JButton but)
 	{
-		ActionListener buttonListener = new ActionListener()
-				{
-					public void actionPerformed(ActionEvent ae)
-					{
-						GroupTotal groupTotal = new GroupTotal(listOfGroups);
-						groupTotal.accept(visit,reportArea);
-						
-					}
-				};
-				
-				but.addActionListener(buttonListener);
+		Command command = new ShowGroupTotalCommand(listOfGroups,but,reportArea,visit);
+		command.execute();
 	}
 	
+	//Show total messages made in reportArea -----------> Check package named Commands
 	private void jButtonGetTotalMessages(JButton but)
 	{
-		ActionListener buttonListener = new ActionListener()
-				{
-					public void actionPerformed(ActionEvent ae)
-					{
-						MessagesTotal temp = new MessagesTotal(newWindow);
-						temp.accept(visit, reportArea);
-						
-					}
-				};
-				
-				but.addActionListener(buttonListener);
+		Command command = new ShowTotalMessagesCommand(allGUIOpen, but, visit,reportArea);
+		command.execute();
 	}
 	
+	//Show total positive messages made in reportArea -----------> Check package named Commands
 	private void jButtonGetTotalPositiveMessages(JButton but)
 	{
-		ActionListener buttonListener = new ActionListener()
-				{
-					public void actionPerformed(ActionEvent ae)
-					{
-						PositiveTotal temp = new PositiveTotal(newWindow);
-						temp.accept(visit, reportArea);
-						
-					}
-				};
-				
-				but.addActionListener(buttonListener);
+		Command command = new ShowTotalPositiveMessagesCommand(allGUIOpen, but, visit, reportArea);
+		command.execute();
 	}
 	
-	
-	
-	//++++++++++++++++++++++++++++++++++++++++++Other Methods++++++++++++++++++++++++++++++++++++++++++++
-	private int  groupArrayListContains(ArrayList<User_Group> temp, DefaultMutableTreeNode value)
+	//Check all user and group Id are unique -----------> Check package named Commands
+	private void jbuttonUserGroupIDVerify(JButton but)
 	{
-		int answer = -1;
-		for(int i = 0; i < temp.size(); i++)
-		{
-			if(temp.get(i).getID().equals(value.toString()))
-			{
-				answer = i;
-			}
-		}
-		
-		return answer;
+		Command command = new VerifyAllId(but, listOfUsers, listOfGroups,reportArea2);
+		command.execute();
+	}
+	//Show last updated user made in reportArea -----------> Check package named Commands
+	private void jbuttonGetLastUpdatedUser(JButton but)
+	{
+		Command command = new GetLastUpdatedUserCommand(but, listOfUsers, reportArea2);
+		command.execute();
 	}
 	
-	private int  userArrayListContains(ArrayList<User> temp, DefaultMutableTreeNode value)
-	{
-		int answer = -1;
-		for(int i = 0; i < temp.size(); i++)
-		{
-			if(temp.get(i).getID().equals(value.toString()))
-			{
-				answer = i;
-			}
-		}
-		
-		return answer;
-	}
 	
 	
 

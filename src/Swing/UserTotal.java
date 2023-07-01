@@ -9,7 +9,7 @@ public class UserTotal implements ShowTotal
 	private int total;
 	private ArrayList <User> UserList = new ArrayList<User>();
 	
-	UserTotal(ArrayList <User> userInput)
+	public UserTotal(ArrayList <User> userInput)
 	{
 		for(int i = 0; i < userInput.size();i++)
 		{

@@ -9,7 +9,7 @@ public class GroupTotal implements ShowTotal
 	private int total;
 	private ArrayList <User_Group> GroupList = new ArrayList<User_Group>();
 	
-	GroupTotal(ArrayList <User_Group> userInput)
+	public GroupTotal(ArrayList <User_Group> userInput)
 	{
 		for(int i = 0; i < userInput.size();i++)
 		{

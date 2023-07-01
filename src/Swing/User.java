@@ -1,6 +1,7 @@
 package Swing;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 public class User extends Subject implements Users
 {
@@ -9,9 +10,15 @@ public class User extends Subject implements Users
 	private ArrayList<User> followings = new ArrayList<User>(); //list of userIDs that user is following
 	private ArrayList<String> messages = new ArrayList<String>(); //list of user's messages
 	
-	User(String userInput)
+	//Added variables for mini twitter 2.0
+	private Date creationTime; //system timestamp that object was created
+	private Date lastUpdateTime; //last updated timestamp of object, when posting
+	
+	public User(String userInput)
 	{
 		this.ID = userInput;
+		setCreationTime(new java.util.Date());
+		setLastUpdateTime(creationTime);
 	}
 	
 	public void addFollower(User inputID)
@@ -41,6 +48,7 @@ public class User extends Subject implements Users
 	public void addMessage(String userInput)
 	{
 		messages.add(userInput);
+		setLastUpdateTime(new java.util.Date());
 	}
 
 	//Getter for User ID --> Will not allow a change so no setter
@@ -81,6 +89,25 @@ public class User extends Subject implements Users
 		return temp;
 	}
 
+	public Date getCreationTime() {
+		return creationTime;
+	}
+	public Date getCreationTimeString()
+	{
+		return creationTime;
+	}
+
+	public void setCreationTime(Date date) {
+		this.creationTime = date;
+	}
+
+	public Date getLastUpdateTime() {
+			return lastUpdateTime;
+	}
+
+	public void setLastUpdateTime(Date creationTime2) {
+		this.lastUpdateTime = creationTime2;
+	}
 
 
 }

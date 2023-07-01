@@ -1,5 +1,7 @@
 package Swing;
 
+import java.util.ArrayList;
+
 import javax.swing.JTextArea;
 
 public class PositiveTotal implements ShowTotal
@@ -7,9 +9,16 @@ public class PositiveTotal implements ShowTotal
 
 	private GUI_User newWindow;
 	
-	PositiveTotal(GUI_User temp)
+	public PositiveTotal(ArrayList<GUI_User> newWindow2)
 	{
-		newWindow = temp;
+		if(newWindow2.size() != 0)
+		{
+			newWindow = newWindow2.get(0);
+		}
+		else
+		{
+			System.out.println("No user has sent out a message yet!");
+		}
 	}
 	@Override
 	public void accept(Visitor visitor, JTextArea report) 

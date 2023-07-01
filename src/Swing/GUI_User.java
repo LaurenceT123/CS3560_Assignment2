@@ -5,21 +5,23 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 import javax.swing.*;
-import javax.swing.text.html.ListView;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
+
+import Commands.Command;
+import Commands.FollowUserCommand;
 
 public class GUI_User implements Observer
 {
-	private static int totalMessages;
+	private static int totalMessages = 0;
 	private static int totalPositiveMessages;
 	
 	private JFrame frame;
 	private int width = 460;
-	private int height = 600;
+	private int height = 700;
 	
 	//Text Areas
 	private JTextField userId;
+	private JTextField creationTime;
+	private JTextField lastUpdateTime;
 	private JTextArea tweetMessage;
 	
 	//buttons
@@ -44,10 +46,11 @@ public class GUI_User implements Observer
 	private ArrayList<GUI_User> GUI_UserList; //keeps track of all the GUI_User that are open
 	private User mainTarget;
 	
-	GUI_User(User focus, ArrayList<User> listOfUsers, ArrayList<GUI_User> allGUIOpen)
+	public GUI_User(User focus, ArrayList<User> listOfUsers, ArrayList<GUI_User> allGUIOpen)
 	{
 		model = new DefaultListModel();
 		model1 = new DefaultListModel();
+		lastUpdateTime = new JTextField();
 		this.GUI_UserList = allGUIOpen;
 		mainTarget = focus;
 		listOfFollowings = focus.getFollowings();
@@ -186,8 +189,6 @@ public class GUI_User implements Observer
 		liveLabel = new JLabel("Live View (News Feed)");
 		tempContainer.add(liveLabel,t);
 		
-		String value = "";
-		
 		updateJList();
 		
 		liveView = new JList(model1);
@@ -225,10 +226,19 @@ public class GUI_User implements Observer
 		g.fill = GridBagConstraints.HORIZONTAL;
 		g.insets = new Insets(10,10,0,10);
 	
+		lastUpdateTime.setText("Live Feed Update Time:" + mainTarget.getLastUpdateTime());
+		lastUpdateTime.setEditable(false);
+		t.ipady = 20;
+		t.ipadx = 100;
+		t.gridx = 0;
+		t.gridy = 0;
+		t.gridwidth = 2;
+		tempContainer.add(lastUpdateTime,t);
+		
 		t.ipady = 50;
 		t.ipadx = 50;
 		t.gridx = 0;
-		t.gridy = 0;
+		t.gridy = 1;
 		t.gridwidth = 2;
 		tweetMessage = new JTextArea(3,30);
 		tweetMessage.setForeground(Color.black);
@@ -241,6 +251,7 @@ public class GUI_User implements Observer
 		
 		tempContainer.add(scrollPane,t);
 		
+		
 		postTweet = new JButton("Post Tweet");
 		t.ipady = 20;
 		t.ipadx = 20;
@@ -249,6 +260,16 @@ public class GUI_User implements Observer
 		t.gridwidth = 2;
 		tempContainer.add(postTweet,t);
 		jButtonPost(postTweet);
+		
+		creationTime = new JTextField();
+		creationTime.setText("User Creation Time:" + mainTarget.getCreationTimeString());
+		creationTime.setEditable(false);
+		t.ipady = 20;
+		t.ipadx = 20;
+		t.gridx = 0;
+		t.gridy = 3;
+		t.gridwidth = 2;
+		tempContainer.add(creationTime,t);
 		
 		g.ipady = 200;
 		g.ipadx = 50;
@@ -261,6 +282,7 @@ public class GUI_User implements Observer
 	
 	public void updateJList() 
 	{
+		lastUpdateTime.setText("Live Feed Update Time: " + mainTarget.getLastUpdateTime());
 		
 		model1.clear();
 		String value = "";
@@ -285,63 +307,11 @@ public class GUI_User implements Observer
 	}
 	
 	/*--------------------------Button Actions--------------------*/
-	
+	//Follows user, attaches observer, updates listOfFollowings and more -----------------> Check Commands package
 	private void jButtonAddFollowUser(JButton but)
 	{
-		ActionListener buttonListener = new ActionListener()
-				{
-					public void actionPerformed(ActionEvent ae)
-					{
-						if(UserArrayListContains(listOFUsers,userId.getText()) != -1 && !userId.getText().equals(mainTarget.getID()))
-						{
-							System.out.println("User found!....Trying to follow User...");
-							
-							if( UserArrayListContains(listOfFollowings, userId.getText()) == -1)
-							{
-								int getIndex = UserArrayListContains(listOFUsers, userId.getText());
-								listOfFollowings.add(listOFUsers.get(getIndex)); //update listOfFollowings
-								
-								//Update followed user followers
-								listOFUsers.get(getIndex).addFollower(mainTarget); 
-								System.out.println("--------" + listOFUsers.get(getIndex).getID());
-								System.out.println("Followers: " + printArrayList(listOFUsers.get(getIndex).getFollowers()));
-						
-								//Update maintargets followings list
-								mainTarget.addFollowings(listOFUsers.get(getIndex));
-								System.out.println("--------" + mainTarget.getID());
-								System.out.println("Following: " + printArrayList(mainTarget.getFollowings()));
-								
-								model.addElement(userId.getText());
-								updateJList(); //update main target's live feed
-								
-								mainTarget.attach(GUI_UserList.get(getIndexGUI(listOFUsers.get(getIndex))));
-								mainTarget.notifyObserver();
-								
-							}
-							else
-							{
-								System.out.println("Following failed since this user is already following provided user");
-								userId.setText("");
-							}
-						}
-						else
-						{
-							System.out.println("Sorry...that User doesn't exist or user can't follow themselves");
-						}
-					}
-
-					private String printArrayList(ArrayList<Swing.User> followers) 
-					{
-						String empty = "";
-						for(int i = 0; i<followers.size();i++)
-						{
-							empty += followers.get(i).getID();
-						}
-						return empty;
-					}
-				};
-				
-				but.addActionListener(buttonListener);
+		Command command = new FollowUserCommand(but, listOFUsers, listOfFollowings, userId, mainTarget, this, GUI_UserList, model);
+		command.execute();
 	}
 	
 	private int getIndexGUI (User user)
@@ -350,12 +320,9 @@ public class GUI_User implements Observer
 		
 		for(int i = 0; i < GUI_UserList.size();i++)
 		{
-			if(GUI_UserList.get(i) != null)
+			if(GUI_UserList.get(i).getUserGUI().getID().equals(user.getID()))
 			{
-				if(GUI_UserList.get(i).getUserGUI().getID().equals(user.getID()))
-				{
-					temp = i;
-				}
+				temp = i;
 			}
 		}
 		
@@ -365,42 +332,30 @@ public class GUI_User implements Observer
 	private void jButtonPost(JButton but)
 	{
 		ActionListener buttonListener = new ActionListener()
-				{
-					public void actionPerformed(ActionEvent ae)
-					{
-						totalMessages++;
-						mainTarget.addMessage(tweetMessage.getText());
-						
-						if(tweetMessage.getText().toLowerCase().indexOf("nice") != -1 || 
-								tweetMessage.getText().toLowerCase().indexOf("good") != -1 || 
-								tweetMessage.getText().toLowerCase().indexOf("excellent") != -1)
-						{
-							totalPositiveMessages++;
-						}
-						
-						mainTarget.notifyObserver(); //updates followers live feeds
-						
-						tweetMessage.setText("");
-						updateJList();
-						
-					}
-				};
-				but.addActionListener(buttonListener);
-	}
-	
-	private int UserArrayListContains(ArrayList<User> temp, String value)
-	{
-		
-		int answer = -1;
-		for(int i = 0; i < temp.size(); i++)
 		{
-			if(temp.get(i).getID().equals(value))
+			public void actionPerformed(ActionEvent ae)
 			{
-				answer = i;
+				totalMessages++;
+				mainTarget.addMessage(tweetMessage.getText());
+				
+				if(tweetMessage.getText().toLowerCase().indexOf("nice") != -1 || 
+						tweetMessage.getText().toLowerCase().indexOf("good") != -1 || 
+						tweetMessage.getText().toLowerCase().indexOf("excellent") != -1 ||
+						tweetMessage.getText().toLowerCase().indexOf("happy") != -1)
+				{
+					totalPositiveMessages = getTotalPositiveMessages() + 1;
+				}
+				
+				mainTarget.setLastUpdateTime(new java.util.Date());
+										
+				tweetMessage.setText("");
+				
+				mainTarget.notifyObserver(); //updates followers live feeds
+				updateJList(); //updates own live feed
+
 			}
-		}
-		
-		return answer;
+		};
+		but.addActionListener(buttonListener);
 	}
 	
 	public int getTotalMessages()
@@ -420,14 +375,14 @@ public class GUI_User implements Observer
 	{
 		if(subject instanceof User)
 		{
+			System.out.println("----------------------------------------------");
 			System.out.println("Posting...updating followers live news board");	
-			for(int i = 0; i < GUI_UserList.size(); i++)
-			{
-				if(GUI_UserList.get(i) != null) //if GUI_User is not closed
-				{
-					GUI_UserList.get(i).updateJList();
-				}
-			}
+			System.out.println("----------------------------------------------");
+			
+			mainTarget.setLastUpdateTime(((User)subject).getLastUpdateTime()); //update followers lastUpdateTime
+			GUI_UserList.get(getIndexGUI(mainTarget)).updateJList(); //update follower's live feed
+			
+			
 		}
 	}//end update
 	

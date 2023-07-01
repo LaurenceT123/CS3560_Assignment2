@@ -6,12 +6,14 @@ public class User_Group implements Users
 	private String groupID;
 	private ArrayList<Users> listOfUsers = new ArrayList<Users>(); //a list of users (including other groups) that are in the group
 	private int numberOfUsers;
+	private long creationTime;
 	
 	//Create group
-	User_Group(String userInput)
+	public User_Group(String userInput)
 	{
 		this.groupID = userInput;
 		numberOfUsers = 0;
+		setCreationTime(System.currentTimeMillis());
 	}
 	
 	public void addUser(User userInput)
@@ -44,6 +46,14 @@ public class User_Group implements Users
 
 	public int getNumberOfUsers() {
 		return numberOfUsers;
+	}
+	
+	public long getCreationTime() {
+		return creationTime;
+	}
+
+	public void setCreationTime(long creationTime) {
+		this.creationTime = creationTime;
 	}
 	
 	private boolean contain(String value)
